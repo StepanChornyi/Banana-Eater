@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Banana Eater</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+    var config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 300 },
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    var player;
+    var bananas;
+	var bombs;
+	var trophy;
+    var platforms;
+    var cursors;
+	var keySpace;
+    var score = 100;
+    var scoreText;
+	var isOver = false;
+
+    var game = new Phaser.Game(config);
+
+    function preload ()
+    {
+        this.load.image('ground', 'assets/platform.png');
+        this.load.image('grenade', 'assets/grenade.png');
+        this.load.image('banana', 'assets/banana.png');
+		this.load.image('monkey', 'assets/monkey.png');
+	    this.load.image('trophy', 'assets/trophy.png');
+    }
+
+    function create ()
+    {
+        player = this.physics.add.sprite(300, 450, 'monkey');
+
+		player.setBounceX(0.2);
+        player.setBounceY(0.2);
+        player.setCollideWorldBounds(true);
+        player.body.setGravityY(1000);
+        player.body.collideWorldBounds = false;
+
+        cursors = this.input.keyboard.createCursorKeys();
+		keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+		platforms = this.physics.add.staticGroup();
+		bananas = this.physics.add.group();
+		bombs = this.physics.add.group();
+		trophy = this.physics.add.group();
+		platforms.create(300, 568, 'ground').setScale(1.5).refreshBody();
+
+		let step = 0;
+		let length = 100;
+		for(let i = 0; i < length; i++){
+			let scale = Phaser.Math.Between(50, 90)/100;
+			let x = Phaser.Math.Between(-100, 900);
+			let y = 400+(step*Phaser.Math.Between(-50, -120));
+			var platform = platforms.create(x, y, 'ground').setScale(scale).refreshBody();
+			platform.body.checkCollision.down = false;
+	        platform.body.checkCollision.left = false;
+	        platform.body.checkCollision.right = false;
+			if(i == length-1){
+				trophy.create(platform.x, platform.y - platform.height - 50, 'trophy');
+				break;
+			}
+
+			if(Phaser.Math.Between(-300, 300) > 0){
+				createBanana(0);
+			}
+
+			function createBanana(number){
+				if(Phaser.Math.Between(-300, 30) > 0){
+					bomb = bombs.create(Phaser.Math.Between(x - platform.width*scale, x + platform.width*scale), (y + platform.height+number*50), 'grenade');
+					createBanana(++number);
+					return 0;
+				}
+				banaba = bananas.create(Phaser.Math.Between(x - platform.width*scale, x + platform.width*scale), (y + platform.height+number*50), 'banana');
+				if(Phaser.Math.Between(-300, 100) > 0){
+					createBanana(++number);
+				}
+
+			}
+			step++;
+		}
+
+        bananas.children.iterate(function (child) {
+            child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.3));
+        });
+        this.cameras.main.startFollow(player);
+        
+        scoreText = this.add.text(16, 16, 'Height: 0\nFood: 0', { fontSize: '32px', fill: '#eee' });
+        this.add.text(1, 600, 'Up arrow - simple jump(cost: 3 points of food)\n'+
+                                            'Left or right arrow - move to left or right(cost: 0 points of food)\n'+
+                                            'Space button - boosted jump(cost: 25 points of food)\n'+
+                                            'Cathing banana: +10 points of food, cathing bomb: -50 points of food\n'+
+                                            'If food points are zero - you dead. If you find a trophy - you win',
+                                            { fontSize: '18px', fill: '#eee' });
+        
+		this.cameras.main.startFollow(player);
+
+		this.physics.add.collider(platforms, platforms);
+        this.physics.add.collider(player, platforms);
+		this.physics.add.collider(bananas, platforms);
+		this.physics.add.collider(bombs, platforms);
+        this.physics.add.collider(trophy, platforms);
+		this.physics.add.collider(bananas, bananas);
+		this.physics.add.collider(bombs, bombs);
+		this.physics.add.collider(bombs, bananas);
+
+        this.physics.add.overlap(player, bananas, collectbanana, null, this);
+		this.physics.add.overlap(player, bombs, collectBomb, null, this);
+		this.physics.add.overlap(player, trophy, collectTrophy, null, this);
+    }
+
+    function update ()
+    {
+		if(isOver == false){
+        ///moving
+	        let acsekleration = 1000;
+	        let maxSpeed = 500;
+	        if( cursors.left.isDown ) {
+	            player.body.setGravityX(-acsekleration);
+	        } else if( cursors.right.isDown ) {
+	            player.body.setGravityX(acsekleration);
+	        } else {
+				if(Math.abs(player.body.velocity.x) < 0.01){
+					player.body.velocity.x = 0;
+				}
+	            if(player.body.velocity.x == 0){
+	                player.body.setGravityX(0);
+	            }else if(player.body.velocity.x > 0){
+	                player.body.setGravityX(-acsekleration);
+	            }else{
+	                player.body.setGravityX(acsekleration);
+	            }
+	        }
+	        if(Math.abs(player.body.velocity.x) > maxSpeed){
+	           player.body.velocity.x = maxSpeed * Math.sign(player.body.velocity.x);
+	        }
+	        //jumping
+	        if (player.body.touching.down && cursors.up.isDown)
+	        {
+	            player.setVelocityY(-730);
+				score -= 3;
+	        }else if(keySpace.isDown && player.body.touching.down){
+				if(score>=25){
+					player.setVelocityY(-730*1.8);
+					score -= 25;
+				}else{
+					player.setVelocityY(-730);
+					score -= 3;
+				}
+			}
+		}
+		///Link score to player
+		let height, food;
+		if(isOver == false){
+			scoreText.x = player.x - 395;
+			scoreText.y = player.y - 297;
+			food = 'Food: ' + score;
+			height = 'Height: '+(Math.abs((player.y - 520)*0.03) + '').split('.')[0];
+		}
+		if(!isOver && (player.y - 520 > 100 || score < 0)){
+			gameOver();
+			if(isOver == false)
+				isOver = true;
+			scoreText.y = player.y - scoreText.height - 20;
+		}
+		if(player.y - 520 > 100 || score < 0 || isOver == true || isOver == null){
+			scoreText.x = player.x - scoreText.width/2;
+			height = 'Monkey dead';
+			food = '\n Game Over';
+			if(isOver == null){
+				height = 'You Win!';
+				food = '\n';
+			}
+			player.setVelocityY(50);
+		}
+		scoreText.setText(height + '\n' + food);
+
+
+		function gameOver(){
+			platforms.children.iterate(function (platform) {
+	            platform.disableBody(true, true);
+	        });
+			bananas.children.iterate(function (banana) {
+	            banana.setVelocityY(250);
+				banana.body.setGravityY(0);
+	        });
+			bombs.children.iterate(function (bomb) {
+				bomb.setVelocityY(450);
+				bomb.body.setGravityY(0);
+	        });
+			player.body.setGravityY(0);
+			player.body.setGravityX(0);
+			player.setVelocityY(0);
+			player.setVelocityX(0);
+
+		}
+    }
+
+    function collectbanana (player, banana)
+    {
+        banana.disableBody(true, true);
+        score += 10;
+    }
+
+	function collectBomb (player, bomb)
+    {
+        bomb.disableBody(true, true);
+        score -= 50;
+    }
+
+	function collectTrophy (player, trophy)
+    {
+        trophy.disableBody(true, true);
+        isOver = null;
+    }
+
+</script>
+
+</body>
+</html>
