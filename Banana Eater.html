@@ -41,6 +41,7 @@
 	var keySpace;
     var score = 100;
     var scoreText;
+    var instructions;
 	var isOver = false;
 
     var game = new Phaser.Game(config);
@@ -113,7 +114,7 @@
         this.cameras.main.startFollow(player);
         
         scoreText = this.add.text(16, 16, 'Height: 0\nFood: 0', { fontSize: '32px', fill: '#eee' });
-        this.add.text(1, 600, 'Up arrow - simple jump(cost: 3 points of food)\n'+
+        instructions = this.add.text(-50, 600, '\nUp arrow - simple jump(cost: 3 points of food)\n'+
                                             'Left or right arrow - move to left or right(cost: 0 points of food)\n'+
                                             'Space button - boosted jump(cost: 25 points of food)\n'+
                                             'Cathing banana: +10 points of food, cathing bomb: -50 points of food\n'+
@@ -175,6 +176,9 @@
 					score -= 3;
 				}
 			}
+            if(cursors.left.isDown || cursors.right.isDown || cursors.up.isDown) {
+	            instructions.setText('');
+	        } 
 		}
 		///Link score to player
 		let height, food;
