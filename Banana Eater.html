@@ -53,6 +53,7 @@
         this.load.image('banana', 'assets/banana.png');
 		this.load.image('monkey', 'assets/monkey.png');
 	    this.load.image('trophy', 'assets/trophy.png');
+        this.load.spritesheet('dude', 'assets/sprite0.png', { frameWidth: 36, frameHeight: 34 });
     }
 
     function create ()
@@ -73,6 +74,24 @@
 		bombs = this.physics.add.group();
 		trophy = this.physics.add.group();
 		platforms.create(300, 568, 'ground').setScale(1.5).refreshBody();
+        
+        this.anims.create({
+            key: 'mokey0',
+            frames: [ { key: 'dude', frame: 0 } ],
+            frameRate: 20
+        });
+        
+         this.anims.create({
+            key: 'mokey1',
+            frames: [ { key: 'dude', frame: 1 } ],
+            frameRate: 20
+        });
+        
+         this.anims.create({
+            key: 'mokey2',
+            frames: [ { key: 'dude', frame: 2 } ],
+            frameRate: 20
+        });
 
 		let step = 0;
 		let length = 100;
@@ -86,7 +105,7 @@
 	        platform.body.checkCollision.right = false;
 			if(i == length-1){
 				trophy.create(platform.x, platform.y - platform.height - 50, 'trophy');
-				break;
+				continue;
 			}
 
 			if(Phaser.Math.Between(-300, 300) > 0){
@@ -180,7 +199,18 @@
 	            instructions.setText('');
 	        } 
 		}
-		///Link score to player
+        
+        //fat monkey test
+        if(score < 50){
+            player.anims.play('mokey0');   
+        }else if(score >=50 && score < 150){
+            player.anims.play('mokey1');
+        }else{
+            player.anims.play('mokey2');
+        }
+        
+        
+		///Link scores to player
 		let height, food;
 		if(isOver == false){
 			scoreText.x = player.x - 395;
@@ -188,12 +218,15 @@
 			food = 'Food: ' + score;
 			height = 'Height: '+(Math.abs((player.y - 520)*0.03) + '').split('.')[0];
 		}
-		if(!isOver && (player.y - 520 > 100 || score < 0)){
+		if(isOver==false && (player.y - 520 > 100 || score < 0)){
 			gameOver();
 			if(isOver == false)
 				isOver = true;
 			scoreText.y = player.y - scoreText.height - 20;
 		}
+        if(isOver == null){
+           gameOver();
+           }
 		if(player.y - 520 > 100 || score < 0 || isOver == true || isOver == null){
 			scoreText.x = player.x - scoreText.width/2;
 			height = 'Monkey dead';
@@ -201,6 +234,7 @@
 			if(isOver == null){
 				height = 'You Win!';
 				food = '\n';
+			     scoreText.y = player.y - 150;
 			}
 			player.setVelocityY(50);
 		}
@@ -242,7 +276,9 @@
 	function collectTrophy (player, trophy)
     {
         trophy.disableBody(true, true);
-        isOver = null;
+        if(!isOver){
+           isOver = null;
+           }
     }
 
 </script>
