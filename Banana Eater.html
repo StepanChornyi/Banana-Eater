@@ -53,7 +53,8 @@
         this.load.image('banana', 'assets/banana.png');
 		this.load.image('monkey', 'assets/monkey.png');
 	    this.load.image('trophy', 'assets/trophy.png');
-        this.load.spritesheet('dude', 'assets/sprite0.png', { frameWidth: 36, frameHeight: 34 });
+        this.load.spritesheet('dude', 'assets/sprite1.png', { frameWidth: 36, frameHeight: 34 });
+        this.load.spritesheet('explosion', 'assets/explosion0.png', { frameWidth: 128, frameHeight: 128 });
     }
 
     function create ()
@@ -75,23 +76,21 @@
 		trophy = this.physics.add.group();
 		platforms.create(300, 568, 'ground').setScale(1.5).refreshBody();
         
+        for(let i = 0; i <= 10; i++){
+            this.anims.create({
+                key: 'mokey'+ i,
+                frames: [ { key: 'dude', frame: i } ],
+                frameRate: 20
+            });
+        }
+        
         this.anims.create({
-            key: 'mokey0',
-            frames: [ { key: 'dude', frame: 0 } ],
-            frameRate: 20
+                key: 'boom',
+                frames: this.anims.generateFrameNumbers('explosion', { start: 0, end:  5}),
+                frameRate: 30,
+                repeat : 0
         });
         
-         this.anims.create({
-            key: 'mokey1',
-            frames: [ { key: 'dude', frame: 1 } ],
-            frameRate: 20
-        });
-        
-         this.anims.create({
-            key: 'mokey2',
-            frames: [ { key: 'dude', frame: 2 } ],
-            frameRate: 20
-        });
 
 		let step = 0;
 		let length = 100;
@@ -113,10 +112,10 @@
 			}
 
 			function createBanana(number){
-				if(Phaser.Math.Between(-300, 30) > 0){
+				if(Phaser.Math.Between(-300, 900) > 0){
 					bomb = bombs.create(Phaser.Math.Between(x - platform.width*scale, x + platform.width*scale), (y + platform.height+number*50), 'grenade');
-					createBanana(++number);
-					return 0;
+					//createBanana(++number);
+					//return 0;
 				}
 				banaba = bananas.create(Phaser.Math.Between(x - platform.width*scale, x + platform.width*scale), (y + platform.height+number*50), 'banana');
 				if(Phaser.Math.Between(-300, 100) > 0){
@@ -152,7 +151,16 @@
 		this.physics.add.collider(bombs, bananas);
 
         this.physics.add.overlap(player, bananas, collectbanana, null, this);
-		this.physics.add.overlap(player, bombs, collectBomb, null, this);
+		this.physics.add.overlap(player, bombs, (player, bomb)=>{
+            let boom = this.physics.add.sprite(300, 450, 'monkey');
+            boom.x=bomb.x;
+            boom.y=bomb.y;
+            boom.body.setGravityY(0);
+            boom.anims.play('boom', true);
+            
+            setTimeout(()=>{boom.disableBody(true, true);}, 500);
+            collectBomb(player, bomb);
+        }, null, this);
 		this.physics.add.overlap(player, trophy, collectTrophy, null, this);
     }
 
@@ -201,12 +209,28 @@
 		}
         
         //fat monkey test
-        if(score < 50){
+        if(score < 10){
             player.anims.play('mokey0');   
-        }else if(score >=50 && score < 150){
+        }else if(score<20){
             player.anims.play('mokey1');
-        }else{
+        }else if(score<40){
             player.anims.play('mokey2');
+        }else if(score<70){
+            player.anims.play('mokey3');
+        }else if(score<120){
+            player.anims.play('mokey4');
+        }else if(score<140){
+            player.anims.play('mokey5');
+        }else if(score<150){
+            player.anims.play('mokey6');
+        }else if(score<160){
+            player.anims.play('mokey7');
+        }else if(score<170){
+            player.anims.play('mokey8');
+        }else if(score<190){
+            player.anims.play('mokey9');
+        }else{
+            player.anims.play('mokey10');
         }
         
         
