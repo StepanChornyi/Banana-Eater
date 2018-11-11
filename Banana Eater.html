@@ -93,35 +93,38 @@
         
 
 		let step = 0;
-		let length = 100;
+		let length = 99;
 		for(let i = 0; i < length; i++){
 			let scale = Phaser.Math.Between(50, 90)/100;
 			let x = Phaser.Math.Between(-100, 900);
-			let y = 400+(step*Phaser.Math.Between(-50, -120));
+			let y = 400 + step*(-120)+(Phaser.Math.Between(-40, 40));
 			var platform = platforms.create(x, y, 'ground').setScale(scale).refreshBody();
 			platform.body.checkCollision.down = false;
 	        platform.body.checkCollision.left = false;
 	        platform.body.checkCollision.right = false;
-			if(i == length-1){
-				trophy.create(platform.x, platform.y - platform.height - 50, 'trophy');
+			if(i == length/3 || i == (length/3)*2 || i == length-1){
+				let t = trophy.create(platform.x, platform.y - 50, 'trophy');
+                step++;
 				continue;
 			}
+            
+            
 
 			if(Phaser.Math.Between(-300, 300) > 0){
-				createBanana(0);
+				createBanana(1);
 			}
 
 			function createBanana(number){
-				if(Phaser.Math.Between(-300, 900) > 0){
-					bomb = bombs.create(Phaser.Math.Between(x - platform.width*scale, x + platform.width*scale), (y + platform.height+number*50), 'grenade');
-					//createBanana(++number);
+				if(Phaser.Math.Between(-300, 750) > 0){
+					bomb = bombs.create(Phaser.Math.Between(x - platform.width*scale + 18, x + platform.width*scale - 18), (y - 18-number*20), 'grenade');
+					number++;
+                    //createBanana(++number);
 					//return 0;
 				}
-				banaba = bananas.create(Phaser.Math.Between(x - platform.width*scale, x + platform.width*scale), (y + platform.height+number*50), 'banana');
-				if(Phaser.Math.Between(-300, 100) > 0){
+				banaba = bananas.create(Phaser.Math.Between(x - platform.width*scale + 18, x + platform.width*scale - 18), (y - 18-number*20), 'banana');
+				if(Phaser.Math.Between(-300, 130) > 0){
 					createBanana(++number);
 				}
-
 			}
 			step++;
 		}
@@ -135,7 +138,7 @@
         instructions = this.add.text(-50, 600, '\nUp arrow - simple jump(cost: 3 points of food)\n'+
                                             'Left or right arrow - move to left or right(cost: 0 points of food)\n'+
                                             'Space button - boosted jump(cost: 25 points of food)\n'+
-                                            'Cathing banana: +10 points of food, cathing bomb: -50 points of food\n'+
+                                            'Cathing banana: +10 points of food, cathing bomb: -10 points of food\n'+
                                             'If food points are zero - you dead. If you find a trophy - you win',
                                             { fontSize: '18px', fill: '#eee' });
         
@@ -277,6 +280,10 @@
 				bomb.setVelocityY(450);
 				bomb.body.setGravityY(0);
 	        });
+            trophy.children.iterate(function (bomb) {
+				bomb.setVelocityY(200);
+				bomb.body.setGravityY(0);
+	        });
 			player.body.setGravityY(0);
 			player.body.setGravityX(0);
 			player.setVelocityY(0);
@@ -294,7 +301,7 @@
 	function collectBomb (player, bomb)
     {
         bomb.disableBody(true, true);
-        score -= 50;
+        score -= 10;
     }
 
 	function collectTrophy (player, trophy)
