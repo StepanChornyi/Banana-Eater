@@ -97,7 +97,7 @@
 		for(let i = 0; i < length; i++){
 			let scale = Phaser.Math.Between(50, 90)/100;
 			let x = Phaser.Math.Between(-50, 750);
-			let y = 400 + step*(-120)+(Phaser.Math.Between(-40, 40));
+			let y = 400 + step*(-130)+(Phaser.Math.Between(-40, 40));
 			var platform = platforms.create(x, y, 'ground').setScale(scale).refreshBody();
 			platform.body.checkCollision.down = false;
 	        platform.body.checkCollision.left = false;
@@ -111,7 +111,7 @@
             
             
 
-			if(Phaser.Math.Between(0, 100) < 68){
+			if(Phaser.Math.Between(0, 100) < 60){
                 createBanana(1);
 			}
             
@@ -124,7 +124,7 @@
                    return 0;
                 }
 				bananas.create(Phaser.Math.Between(x - (platform.width*scale)/2 + 18, x + (platform.width*scale)/2 - 18), (y - 18-number*30), 'banana');
-				if(Phaser.Math.Between(0, Math.round(100*(number*0.6))) < 25){
+				if(Phaser.Math.Between(0, Math.round(100*(number*0.6))) < 20){
 					createBanana(++number);
 				}
 			}
@@ -149,7 +149,7 @@
         instructions = this.add.text(-50, 600, '\nUp arrow - simple jump(cost: 3 points of food)\n'+
                                             'Left or right arrow - move to left or right(cost: 0 points of food)\n'+
                                             'Space button - boosted jump(cost: 25 points of food)\n'+
-                                            'Cathing banana: +10 points of food, cathing bomb: -10 points of food\n'+
+                                            'Cathing banana: +10 points of food, cathing bomb: -15 points of food\n'+
                                             'If food points are zero - you dead. If you find a trophy - you win',
                                             { fontSize: '18px', fill: '#eee' });
         
@@ -160,9 +160,10 @@
 		this.physics.add.collider(bananas, platforms);
 		this.physics.add.collider(bombs, platforms);
         this.physics.add.collider(trophy, platforms);
+        this.physics.add.collider(bombs, bananas);
 		this.physics.add.collider(bananas, bananas);
 		this.physics.add.collider(bombs, bombs);
-		this.physics.add.collider(bombs, bananas);
+		
 
         this.physics.add.overlap(player, bananas, collectbanana, null, this);
 		this.physics.add.overlap(player, bombs, (player, bomb)=>{
@@ -254,7 +255,7 @@
 			scoreText.x = player.x - 395;
 			scoreText.y = player.y - 297;
 			food = 'Food: ' + score;
-			height = 'Height: '+(Math.abs((player.y - 520)*0.03) + '').split('.')[0];
+			height = 'Height: '+(Math.abs((player.y - 400)/130) + '').split('.')[0];
 		}
 		if(isOver==false && (player.y - 520 > 100 || score < 0)){
 			gameOver();
@@ -267,8 +268,13 @@
            }
 		if(player.y - 520 > 100 || score < 0 || isOver == true || isOver == null){
 			scoreText.x = player.x - scoreText.width/2;
-			height = 'Monkey dead';
-			food = '\n Game Over';
+            if(score < 0){
+               height = 'Food was over';
+            }else{
+               height = 'Monkey dead';
+            }
+			food = '\n';
+			
 			if(isOver == null){
 				height = 'You Win!';
 				food = '\n';
@@ -306,13 +312,17 @@
     function collectbanana (player, banana)
     {
         banana.disableBody(true, true);
-        score += 10;
+        if(isOver==false){
+            score += 10;
+        }
     }
 
 	function collectBomb (player, bomb)
     {
         bomb.disableBody(true, true);
-        score -= 10;
+        if(isOver==false){
+            score -= 15;
+        }
     }
 
 	function collectTrophy (player, trophy)
@@ -320,7 +330,7 @@
         trophy.disableBody(true, true);
         if(!isOver){
            isOver = null;
-           }
+        }
     }
 
 </script>
