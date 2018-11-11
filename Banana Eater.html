@@ -93,7 +93,7 @@
         
 
 		let step = 0;
-		let length = 99;
+		let length = 100;
 		for(let i = 0; i < length; i++){
 			let scale = Phaser.Math.Between(50, 90)/100;
 			let x = Phaser.Math.Between(-50, 750);
@@ -102,7 +102,7 @@
 			platform.body.checkCollision.down = false;
 	        platform.body.checkCollision.left = false;
 	        platform.body.checkCollision.right = false;
-			if(i == length/3 || i == (length/3)*2 || i == length-1){
+			if(i == Math.round(length/3) || i == Math.round((length/3)*2) || i == length-1){
 				trophy.create(platform.x, platform.y - 50, 'trophy');
                
                 step++;
@@ -257,7 +257,7 @@
 			food = 'Food: ' + score;
 			height = 'Height: '+(Math.abs((player.y - 400)/130) + '').split('.')[0];
 		}
-		if(isOver==false && (player.y - 520 > 100 || score < 0)){
+		if(isOver==false && (player.y - 800 > 0 || score < 0)){
 			gameOver();
 			if(isOver == false)
 				isOver = true;
@@ -266,10 +266,10 @@
         if(isOver == null){
            gameOver();
            }
-		if(player.y - 520 > 100 || score < 0 || isOver == true || isOver == null){
+		if(player.y - 800 > 0 || score < 0 || isOver == true || isOver == null){
 			scoreText.x = player.x - scoreText.width/2;
             if(score < 0){
-               height = 'Food was over';
+               height = 'Food is over';
             }else{
                height = 'Monkey dead';
             }
