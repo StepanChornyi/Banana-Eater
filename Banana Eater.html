@@ -38,7 +38,7 @@
 	var trophy;
     var platforms;
     var cursors;
-	var keySpace;
+	var keyboard;
     var score = 100;
     var scoreText;
     var instructions;
@@ -68,7 +68,13 @@
         player.body.collideWorldBounds = false;
 
         cursors = this.input.keyboard.createCursorKeys();
-		keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        keyboard = {
+            SPACE : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
+            A : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+            W : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+            D : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+        }
+		
 
 		platforms = this.physics.add.staticGroup();
 		bananas = this.physics.add.group();
@@ -185,9 +191,9 @@
         ///moving
 	        let acsekleration = 1000;
 	        let maxSpeed = 500;
-	        if( cursors.left.isDown ) {
+	        if( cursors.left.isDown || keyboard.A.isDown) {
 	            player.body.setGravityX(-acsekleration);
-	        } else if( cursors.right.isDown ) {
+	        } else if( cursors.right.isDown  || keyboard.D.isDown) {
 	            player.body.setGravityX(acsekleration);
 	        } else {
 				if(Math.abs(player.body.velocity.x) < 0.01){
@@ -205,11 +211,11 @@
 	           player.body.velocity.x = maxSpeed * Math.sign(player.body.velocity.x);
 	        }
 	        //jumping
-	        if (player.body.touching.down && cursors.up.isDown)
+	        if (player.body.touching.down && (cursors.up.isDown || keyboard.W.isDown))
 	        {
 	            player.setVelocityY(-730);
 				score -= 3;
-	        }else if(keySpace.isDown && player.body.touching.down){
+	        }else if(keyboard.SPACE.isDown && player.body.touching.down){
 				if(score>=25){
 					player.setVelocityY(-730*1.8);
 					score -= 25;
