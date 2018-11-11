@@ -96,8 +96,8 @@
 		let length = 99;
 		for(let i = 0; i < length; i++){
 			let scale = Phaser.Math.Between(50, 90)/100;
-			let x = Phaser.Math.Between(-100, 900);
-			let y = 400 + step*(-110)+(Phaser.Math.Between(-40, 40));
+			let x = Phaser.Math.Between(-50, 750);
+			let y = 400 + step*(-120)+(Phaser.Math.Between(-40, 40));
 			var platform = platforms.create(x, y, 'ground').setScale(scale).refreshBody();
 			platform.body.checkCollision.down = false;
 	        platform.body.checkCollision.left = false;
@@ -111,23 +111,31 @@
             
             
 
-			if(Phaser.Math.Between(-300, 450) > 0){
+			if(Phaser.Math.Between(0, 100) < 68){
                 createBanana(1);
+			}
+            
+            if(Phaser.Math.Between(0, 100) < 50){
+                createBomb(1);
 			}
 
 			function createBanana(number){
-				if(Phaser.Math.Between(-300, 650) > 0){
-					bombs.create(Phaser.Math.Between(x - (platform.width*scale)/2 + 20, x + (platform.width*scale)/2 - 20), (y - 18-number*30), 'grenade');
-					number++;
-                    if(Phaser.Math.Between(-300, 200) > 0){
-                       return 0;
-                    }
-				}
+				if(number==3){
+                   return 0;
+                }
 				bananas.create(Phaser.Math.Between(x - (platform.width*scale)/2 + 18, x + (platform.width*scale)/2 - 18), (y - 18-number*30), 'banana');
-				if(Phaser.Math.Between(-300, Math.round(130/(number*0.6))) > 0){
+				if(Phaser.Math.Between(0, Math.round(100*(number*0.6))) < 25){
 					createBanana(++number);
 				}
-
+			}
+            function createBomb(number){
+				if(number==3){
+                   return 0;
+                }
+				bombs.create(Phaser.Math.Between(x - (platform.width*scale)/2 + 20, x + (platform.width*scale)/2 - 20), (y - 18-number*30), 'grenade');
+				if(Phaser.Math.Between(0, Math.round(100*(number*0.6))) < 25){
+					createBanana(++number);
+				}
 			}
 			step++;
 		}
