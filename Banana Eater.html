@@ -45,6 +45,8 @@
     var scoreText;
     var instructions;
     
+    var colors;
+    
     var keyboard;
 	var playerStatus;
     var isRestarted = false;
@@ -83,6 +85,27 @@
             WIN: 'WIN',
             RESTARTING: 'RESTARTING',
             STATUS:  'ALIVE'
+        }
+        //background and platforms colors
+        colors = {
+            color1:{
+                b: new Phaser.Display.Color(4,4,33),
+            },
+            color2:{
+                b: new Phaser.Display.Color(23,44,7),
+            },
+            color3:{
+                b: new Phaser.Display.Color(37,7,0),
+            },
+            color4:{
+                b:new Phaser.Display.Color(21,34,0),
+            },
+            color5:{
+                b:new Phaser.Display.Color(10,0,11),
+            },
+            color6:{
+                b:new Phaser.Display.Color(3,31,8),
+            }
         }
         ///animation frames
 		if(!isRestarted){
@@ -213,7 +236,6 @@
         }, null, this);
 		this.physics.add.overlap(player, trophy, collectTrophy, null, this);
     }
-
     function update ()
     {   
         //alive test;
@@ -226,6 +248,24 @@
         else if(playerStatus.STATUS == playerStatus.ALIVE && score < 0){
             playerStatus.STATUS = playerStatus.STARVATION;
         }
+        
+        //color making
+        let k = -1500;
+        let num = 6;
+        let num2 = Math.abs((player.y-HEIGHT) % (k*num));
+        var hexColor;
+        for(let i = 1; i <= num; i++){
+            if(num2 < Math.abs(k)*i){
+                if(i == num){
+                   hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(colors['color'+i].b, colors['color'+(1)].b, k, num2%k*-1);
+                }else{
+                    hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(colors['color'+i].b, colors['color'+(i+1)].b, k, num2%k*-1);
+                }
+                this.cameras.main.setBackgroundColor(hexColor);
+                break; 
+            }
+        }   
+        
         
         //monkey control
 		if(playerStatus.STATUS == playerStatus.ALIVE){
