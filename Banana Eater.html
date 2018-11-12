@@ -37,12 +37,14 @@
 	var bombs;
 	var trophy;
     var platforms;
-    var cursors;
-	var keyboard;
+    
     var score = 100;
     var scoreText;
     var instructions;
-	var isOver = false;
+    
+    var keyboard;
+	var playerStatus;
+    var isRestarted = false;
 
     var game = new Phaser.Game(config);
 
@@ -56,40 +58,53 @@
         this.load.spritesheet('dude', 'assets/sprite1.png', { frameWidth: 36, frameHeight: 34 });
         this.load.spritesheet('explosion', 'assets/explosion0.png', { frameWidth: 128, frameHeight: 128 });
     }
-
+    
     function create ()
-    {
-        cursors = this.input.keyboard.createCursorKeys();
+    {   
+        ////key events
         keyboard = {
             SPACE : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
             A : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
             W : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-            D : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+            D : this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+            LEFT: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
+            UP: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
+            RIGHT: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
         }
-		
+        //player status
+        playerStatus = {
+            ALIVE: 'ALIVE',
+            DETH: 'DETH',
+            STARVATION: 'STARVATION',
+            WIN: 'WIN',
+            RESTARTING: 'RESTARTING',
+            STATUS:  'ALIVE'
+        }
+        ///animation frames
+		if(!isRestarted){
+            for(let i = 0; i <= 10; i++){
+                this.anims.create({
+                    key: 'mokey'+ i,
+                    frames: [ { key: 'dude', frame: i } ],
+                    frameRate: 20
+                });
+            }
 
+            this.anims.create({
+                    key: 'boom',
+                    frames: this.anims.generateFrameNumbers('explosion', { start: 0, end:  5}),
+                    frameRate: 40,
+                    repeat : 0
+            });
+        }
+       
+        ///platforms, trophys, bananas and bombs
 		platforms = this.physics.add.staticGroup();
 		bananas = this.physics.add.group();
 		bombs = this.physics.add.group();
 		trophy = this.physics.add.group();
 		platforms.create(300, 568, 'ground').setScale(1.5).refreshBody();
         
-        for(let i = 0; i <= 10; i++){
-            this.anims.create({
-                key: 'mokey'+ i,
-                frames: [ { key: 'dude', frame: i } ],
-                frameRate: 20
-            });
-        }
-        
-        this.anims.create({
-                key: 'boom',
-                frames: this.anims.generateFrameNumbers('explosion', { start: 0, end:  5}),
-                frameRate: 30,
-                repeat : 0
-        });
-        
-
 		let step = 0;
 		let length = 100;
 		for(let i = 0; i < length; i++){
@@ -100,14 +115,17 @@
 			platform.body.checkCollision.down = false;
 	        platform.body.checkCollision.left = false;
 	        platform.body.checkCollision.right = false;
+            //////create trophy in every (100/3)*x% length of map 
 			if(i == Math.round(length/3) || i == Math.round((length/3)*2) || i == length-1){
 				trophy.create(platform.x, platform.y - 50, 'trophy');
                 step++;
 				continue;
 			}
+            //////create banana with chance 60%
 			if(Phaser.Math.Between(0, 100) < 60){
                 createBanana(1);
 			}
+            //////create bomb with chance 50%
             if(Phaser.Math.Between(0, 100) < 50){
                 createBomb(1);
 			}
@@ -131,12 +149,10 @@
 			}
 			step++;
 		}
-
-        bananas.children.iterate(function (child) {
-            child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.3));
-        });
+        bananas.children.iterate((child)=>{child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.3));});
+        bombs.children.iterate((child)=>{child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.3));});
         
-        
+        ////player
         player = this.physics.add.sprite(300, 450, 'monkey');
 		player.setBounceX(0.2);
         player.setBounceY(0.2);
@@ -144,8 +160,8 @@
         player.body.setGravityY(1000);
         player.body.collideWorldBounds = false;
         
-        this.cameras.main.startFollow(player);
-        
+
+        ////Scores
         scoreText = this.add.text(16, 16, 'Height: 0\nFood: 0', { fontSize: '32px', fill: '#eee' });
         instructions = this.add.text(-50, 600, '\nUp arrow or W button - simple jump(cost: 3 points of food)\n'+
                                             'Left, Right arrows or A, D buttons - move to left or right(cost: 0)\n'+
@@ -153,9 +169,10 @@
                                             'Cathing banana: +10 points of food, cathing bomb: -15 points of food\n'+
                                             'If food points are zero - you dead. If you find a trophy - you win',
                                             { fontSize: '18px', fill: '#eee' });
-        
+        ///camera
 		this.cameras.main.startFollow(player);
         
+        ////colliders
         this.physics.add.collider(platforms, player);
 		this.physics.add.collider(bananas, platforms);
 		this.physics.add.collider(bombs, platforms);
@@ -164,30 +181,32 @@
 		this.physics.add.collider(bananas, bananas);
 		this.physics.add.collider(bombs, bombs);
 		
-
+        
+        ///overlaps
         this.physics.add.overlap(player, bananas, collectbanana, null, this);
 		this.physics.add.overlap(player, bombs, (player, bomb)=>{
-            let boom = this.physics.add.sprite(300, 450, 'monkey');
+            var boom = this.physics.add.sprite(300, 450, 'explosion');
             boom.x=bomb.x;
             boom.y=bomb.y;
-            boom.body.setGravityY(0);
-            boom.anims.play('boom', true);
             
-            setTimeout(()=>{boom.disableBody(true, true);}, 500);
+            boom.anims.play('boom');
+            boom.body.setGravity(0);
+            setTimeout(()=>{boom.disableBody(true, true);}, 260);
             collectBomb(player, bomb);
         }, null, this);
 		this.physics.add.overlap(player, trophy, collectTrophy, null, this);
     }
 
     function update ()
-    {
-		if(isOver == false){
+    {   
+        //monkey control
+		if(playerStatus.STATUS == playerStatus.ALIVE){
         ///moving
 	        let acsekleration = 1000;
 	        let maxSpeed = 500;
-	        if( cursors.left.isDown || keyboard.A.isDown) {
+	        if( keyboard.LEFT.isDown || keyboard.A.isDown) {
 	            player.body.setGravityX(-acsekleration);
-	        } else if( cursors.right.isDown  || keyboard.D.isDown) {
+	        } else if( keyboard.RIGHT.isDown  || keyboard.D.isDown) {
 	            player.body.setGravityX(acsekleration);
 	        } else {
 				if(Math.abs(player.body.velocity.x) < 0.01){
@@ -205,7 +224,7 @@
 	           player.body.velocity.x = maxSpeed * Math.sign(player.body.velocity.x);
 	        }
 	        //jumping
-	        if (player.body.touching.down && (cursors.up.isDown || keyboard.W.isDown))
+	        if (player.body.touching.down && (keyboard.UP.isDown || keyboard.W.isDown))
 	        {
 	            player.setVelocityY(-730);
 				score -= 3;
@@ -218,74 +237,87 @@
 					score -= 3;
 				}
 			}
-            if(cursors.left.isDown || cursors.right.isDown || cursors.up.isDown) {
+            if(keyboard.LEFT.isDown || keyboard.RIGHT.isDown || keyboard.A.isDown || keyboard.D.isDown) {
 	            instructions.setText('');
 	        } 
 		}
         
         //fat monkey test
-        if(score < 10){
-            player.anims.play('mokey0');   
-        }else if(score<20){
-            player.anims.play('mokey1');
-        }else if(score<40){
-            player.anims.play('mokey2');
-        }else if(score<70){
-            player.anims.play('mokey3');
-        }else if(score<120){
-            player.anims.play('mokey4');
-        }else if(score<140){
-            player.anims.play('mokey5');
-        }else if(score<150){
-            player.anims.play('mokey6');
-        }else if(score<160){
-            player.anims.play('mokey7');
-        }else if(score<170){
-            player.anims.play('mokey8');
-        }else if(score<190){
-            player.anims.play('mokey9');
-        }else{
-            player.anims.play('mokey10');
+        if(playerStatus.STATUS == playerStatus.ALIVE){
+          if(score < 10){
+                    player.anims.play('mokey0');   
+                }else if(score<20){
+                    player.anims.play('mokey1');
+                }else if(score<40){
+                    player.anims.play('mokey2');
+                }else if(score<70){
+                    player.anims.play('mokey3');
+                }else if(score<120){
+                    player.anims.play('mokey4');
+                }else if(score<140){
+                    player.anims.play('mokey5');
+                }else if(score<150){
+                    player.anims.play('mokey6');
+                }else if(score<160){
+                    player.anims.play('mokey7');
+                }else if(score<170){
+                    player.anims.play('mokey8');
+                }else if(score<190){
+                    player.anims.play('mokey9');
+                }else{
+                    player.anims.play('mokey10');
+                }
+        }
+                
+        
+        //alive test;
+        if(playerStatus.STATUS == playerStatus.ALIVE && score < -100){
+           playerStatus.STATUS = playerStatus.WIN;
+        }
+        else if(playerStatus.STATUS == playerStatus.ALIVE && player.y - 800 > 0){
+           playerStatus.STATUS = playerStatus.DETH;
+        }
+        else if(playerStatus.STATUS == playerStatus.ALIVE && score < 0){
+            playerStatus.STATUS = playerStatus.STARVATION;
         }
         
+		///Print scores
+        if(playerStatus.STATUS == playerStatus.ALIVE){
+            scoreText.x = player.x - 395;
+            scoreText.y = player.y - 297;
+			let food = 'Food: ' + score;
+			let height = 'Height: '+(Math.abs((player.y - 400)/130) + '').split('.')[0];
+            scoreText.setText(height + '\n' + food);
+        }
+        else if(playerStatus.STATUS == playerStatus.DETH){
+            scoreText.setText('Monkey dead!\n\n');
+        }
+        else if(playerStatus.STATUS == playerStatus.WIN){
+            scoreText.setText('You Win!\n\n');
+        }
+        else if(playerStatus.STATUS == playerStatus.STARVATION){
+            scoreText.setText('Food is over!\n\n');
+        }
+        else if(playerStatus.STATUS == playerStatus.RESTARTING){
+            scoreText.x = player.x - scoreText.width/2;
+            scoreText.y = player.y - 150;
+            player.setVelocityY(50);
+        }
         
-		///Link scores to player
-		let height, food;
-		if(isOver == false){
-			scoreText.x = player.x - 395;
-			scoreText.y = player.y - 297;
-			food = 'Food: ' + score;
-			height = 'Height: '+(Math.abs((player.y - 400)/130) + '').split('.')[0];
-		}
-		if(isOver==false && (player.y - 800 > 0 || score < 0)){
-			gameOver();
-			if(isOver == false)
-				isOver = true;
-			scoreText.y = player.y - scoreText.height - 20;
-		}
-        if(isOver == null){
-           gameOver();
-           }
-		if(player.y - 800 > 0 || score < 0 || isOver == true || isOver == null){
-			scoreText.x = player.x - scoreText.width/2;
-            if(score < 0){
-               height = 'Food is over';
-            }else{
-               height = 'Monkey dead';
-            }
-			food = '\n';
-			
-			if(isOver == null){
-				height = 'You Win!';
-				food = '\n';
-			     scoreText.y = player.y - 150;
-			}
-			player.setVelocityY(50);
-		}
-		scoreText.setText(height + '\n' + food);
 
+		
+        if(playerStatus.STATUS != playerStatus.ALIVE && playerStatus.STATUS != playerStatus.RESTARTING){
+            gameOverAnimation();
+            playerStatus.STATUS = playerStatus.RESTARTING;
+            setTimeout(()=>{
+                score = 100;
+                playerStatus.STATUS == playerStatus.ALIVE;
+                isRestarted = true;
+                this.scene.restart();
+            }, 3000);
+        }
 
-		function gameOver(){
+		function gameOverAnimation(){
 			platforms.children.iterate(function (platform) {
 	            platform.disableBody(true, true);
 	        });
@@ -305,34 +337,31 @@
 			player.body.setGravityX(0);
 			player.setVelocityY(0);
 			player.setVelocityX(0);
-
 		}
     }
 
-    function collectbanana (player, banana)
-    {
+    function collectbanana (player, banana){
         banana.disableBody(true, true);
-        if(isOver==false){
+        if(playerStatus.STATUS == playerStatus.ALIVE){
             score += 10;
         }
     }
 
-	function collectBomb (player, bomb)
-    {
+	function collectBomb (player, bomb){
         bomb.disableBody(true, true);
-        if(isOver==false){
+        if(playerStatus.STATUS == playerStatus.ALIVE){
             score -= 15;
         }
     }
 
-	function collectTrophy (player, trophy)
-    {
+	function collectTrophy (player, trophy){
         trophy.disableBody(true, true);
-        if(!isOver){
-           isOver = null;
+        if(playerStatus.STATUS == playerStatus.ALIVE){
+           score = -1000;
         }
     }
 
+    
 </script>
 
 </body>
