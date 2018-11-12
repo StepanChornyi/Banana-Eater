@@ -219,6 +219,17 @@
 
     function update ()
     {   
+        //alive test;
+        if(playerStatus.STATUS == playerStatus.ALIVE && score < -100){
+           playerStatus.STATUS = playerStatus.WIN;
+        }
+        else if(playerStatus.STATUS == playerStatus.ALIVE && player.y - 800 > 0){
+           playerStatus.STATUS = playerStatus.DETH;
+        }
+        else if(playerStatus.STATUS == playerStatus.ALIVE && score < 0){
+            playerStatus.STATUS = playerStatus.STARVATION;
+        }
+        
         //monkey control
 		if(playerStatus.STATUS == playerStatus.ALIVE){
         ///moving
@@ -289,17 +300,6 @@
                 }
         }
                 
-        
-        //alive test;
-        if(playerStatus.STATUS == playerStatus.ALIVE && score < -100){
-           playerStatus.STATUS = playerStatus.WIN;
-        }
-        else if(playerStatus.STATUS == playerStatus.ALIVE && player.y - 800 > 0){
-           playerStatus.STATUS = playerStatus.DETH;
-        }
-        else if(playerStatus.STATUS == playerStatus.ALIVE && score < 0){
-            playerStatus.STATUS = playerStatus.STARVATION;
-        }
         
 		///Print scores
         if(playerStatus.STATUS == playerStatus.ALIVE){
