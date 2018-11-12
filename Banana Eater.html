@@ -13,11 +13,14 @@
 <body>
 
 <script type="text/javascript">
+    
+    const WIDTH = window.innerWidth,
+          HEIGHT = window.innerHeight;
 
     var config = {
         type: Phaser.AUTO,
-        width: 800,
-        height: 600,
+        width: WIDTH, 
+        height: HEIGHT,
         physics: {
             default: 'arcade',
             arcade: {
@@ -156,8 +159,8 @@
 			}
 			step++;
 		}
-        bananas.children.iterate((child)=>{child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.3));});
-        bombs.children.iterate((child)=>{child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.3));});
+        bananas.children.iterate((child)=>{child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.5));});
+        bombs.children.iterate((child)=>{child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.7));});
         
         ////player
         player = this.physics.add.sprite(300, 450, 'monkey');
@@ -195,23 +198,17 @@
         
         ///overlaps
         this.physics.add.overlap(player, bananas, (player, banana)=>{
-            var eat = this.physics.add.sprite(300, 450, 'banana_eat');
-            eat.x=banana.x;
-            eat.y=banana.y;
-            
+            var eat = this.physics.add.sprite(banana.x, banana.y, 'banana_eat');
             eat.anims.play('eat');
             eat.body.setGravity(0);
-            setTimeout(()=>{eat.disableBody(true, true);}, 260);
+            setTimeout(()=>{eat.destroy();}, 260);
             collectbanana(player, banana);
         }, null, this);
 		this.physics.add.overlap(player, bombs, (player, bomb)=>{
-            var boom = this.physics.add.sprite(300, 450, 'explosion');
-            boom.x=bomb.x;
-            boom.y=bomb.y;
-            
+            var boom = this.physics.add.sprite(bomb.x, bomb.y, 'explosion');
             boom.anims.play('boom');
             boom.body.setGravity(0);
-            setTimeout(()=>{boom.disableBody(true, true);}, 260);
+            setTimeout(()=>{boom.destroy();}, 260);
             collectBomb(player, bomb);
         }, null, this);
 		this.physics.add.overlap(player, trophy, collectTrophy, null, this);
@@ -303,11 +300,11 @@
         
 		///Print scores
         if(playerStatus.STATUS == playerStatus.ALIVE){
-            scoreText.x = player.x - 395;
-            scoreText.y = player.y - 297;
 			let food = 'Food: ' + score;
 			let height = 'Height: '+(Math.abs((player.y - 400)/130) + '').split('.')[0];
             scoreText.setText(height + '\n' + food);
+            scoreText.x = player.x - WIDTH/2 + 30;
+            scoreText.y = player.y - HEIGHT/2  + 30;
         }
         else if(playerStatus.STATUS == playerStatus.DETH){
             scoreText.setText('Monkey dead!\n\n');
@@ -320,7 +317,7 @@
         }
         else if(playerStatus.STATUS == playerStatus.RESTARTING){
             scoreText.x = player.x - scoreText.width/2;
-            scoreText.y = player.y - 150;
+            scoreText.y = player.y - player.width*5;
             player.setVelocityY(50);
         }
         
@@ -334,7 +331,7 @@
                 playerStatus.STATUS == playerStatus.ALIVE;
                 isRestarted = true;
                 this.scene.restart();
-            }, 1500);
+            }, 2000);
         }
 
 		function gameOverAnimation(){
@@ -361,14 +358,14 @@
     }
 
     function collectbanana (player, banana){
-        banana.disableBody(true, true);
+        banana.destroy();
         if(playerStatus.STATUS == playerStatus.ALIVE){
             score += 10;
         }
     }
 
 	function collectBomb (player, bomb){
-        bomb.disableBody(true, true);
+        bomb.destroy();
         if(playerStatus.STATUS == playerStatus.ALIVE){
             score -= 15;
         }
