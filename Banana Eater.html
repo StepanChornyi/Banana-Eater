@@ -56,6 +56,7 @@
 		this.load.image('monkey', 'assets/monkey.png');
 	    this.load.image('trophy', 'assets/trophy.png');
         this.load.spritesheet('dude', 'assets/sprite1.png', { frameWidth: 36, frameHeight: 34 });
+        this.load.spritesheet('banana_eat', 'assets/bananasprite02.png', { frameWidth: 35, frameHeight: 33 });
         this.load.spritesheet('explosion', 'assets/explosion0.png', { frameWidth: 128, frameHeight: 128 });
     }
     
@@ -93,6 +94,12 @@
             this.anims.create({
                     key: 'boom',
                     frames: this.anims.generateFrameNumbers('explosion', { start: 0, end:  5}),
+                    frameRate: 40,
+                    repeat : 0
+            });
+            this.anims.create({
+                    key: 'eat',
+                    frames: this.anims.generateFrameNumbers('banana_eat', { start: 0, end:  5}),
                     frameRate: 40,
                     repeat : 0
             });
@@ -163,12 +170,16 @@
 
         ////Scores
         scoreText = this.add.text(16, 16, 'Height: 0\nFood: 0', { fontSize: '32px', fill: '#eee' });
-        instructions = this.add.text(-50, 600, '\nUp arrow or W button - simple jump(cost: 3 points of food)\n'+
-                                            'Left, Right arrows or A, D buttons - move to left or right(cost: 0)\n'+
-                                            'Space button - boosted jump(cost: 25 points of food)\n'+
-                                            'Cathing banana: +10 points of food, cathing bomb: -15 points of food\n'+
-                                            'If food points are zero - you dead. If you find a trophy - you win',
-                                            { fontSize: '18px', fill: '#eee' });
+        if(!isRestarted){
+            instructions = this.add.text(-50, 600, 
+                '\nUp arrow or W button - simple jump(cost: 3 points of food)\n'+
+                'Left, Right arrows or A, D buttons - move to left or right(cost: 0)\n'+
+                'Space button - boosted jump(cost: 25 points of food)\n'+
+                'Cathing banana: +10 points of food, cathing bomb: -15 points of food\n'+
+                'If food points are zero - you dead. If you find a trophy - you win',
+                { fontSize: '18px', fill: '#eee' });
+            }
+        
         ///camera
 		this.cameras.main.startFollow(player);
         
@@ -183,7 +194,16 @@
 		
         
         ///overlaps
-        this.physics.add.overlap(player, bananas, collectbanana, null, this);
+        this.physics.add.overlap(player, bananas, (player, banana)=>{
+            var eat = this.physics.add.sprite(300, 450, 'banana_eat');
+            eat.x=banana.x;
+            eat.y=banana.y;
+            
+            eat.anims.play('eat');
+            eat.body.setGravity(0);
+            setTimeout(()=>{eat.disableBody(true, true);}, 260);
+            collectbanana(player, banana);
+        }, null, this);
 		this.physics.add.overlap(player, bombs, (player, bomb)=>{
             var boom = this.physics.add.sprite(300, 450, 'explosion');
             boom.x=bomb.x;
