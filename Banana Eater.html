@@ -250,22 +250,23 @@
         }
         
         //color making
-        let k = -1500;
-        let num = 6;
-        let num2 = Math.abs((player.y-HEIGHT) % (k*num));
-        var hexColor;
-        for(let i = 1; i <= num; i++){
-            if(num2 < Math.abs(k)*i){
-                if(i == num){
-                   hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(colors['color'+i].b, colors['color'+(1)].b, k, num2%k*-1);
-                }else{
-                    hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(colors['color'+i].b, colors['color'+(i+1)].b, k, num2%k*-1);
+        if(playerStatus.STATUS == playerStatus.ALIVE){
+            let k = -1500;
+            let num = 6;
+            let num2 = Math.abs((player.y-HEIGHT) % (k*num));
+            var hexColor;
+            for(let i = 1; i <= num; i++){
+                if(num2 < Math.abs(k)*i){
+                    if(i == num){
+                       hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(colors['color'+i].b, colors['color'+(1)].b, k, num2%k*-1);
+                    }else{
+                        hexColor = Phaser.Display.Color.Interpolate.ColorWithColor(colors['color'+i].b, colors['color'+(i+1)].b, k, num2%k*-1);
+                    }
+                    this.cameras.main.setBackgroundColor(hexColor);
+                    break; 
                 }
-                this.cameras.main.setBackgroundColor(hexColor);
-                break; 
-            }
-        }   
-        
+            }   
+        }
         
         //monkey control
 		if(playerStatus.STATUS == playerStatus.ALIVE){
