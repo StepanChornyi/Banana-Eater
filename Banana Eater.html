@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Banana Eater</title>
     <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -56,10 +57,10 @@
     function preload ()
     {
         this.load.image('ground', 'assets/platform.png');
-        this.load.image('grenade', 'assets/grenade.png');
+        this.load.image('grenade', 'assets/grenade4.png');
         this.load.image('banana', 'assets/banana.png');
 		this.load.image('monkey', 'assets/monkey.png');
-	    this.load.image('trophy', 'assets/trophy.png');
+	    this.load.spritesheet('trophy', 'assets/trophy01.png', { frameWidth: 42, frameHeight: 50 });
         this.load.spritesheet('dude', 'assets/sprite1.png', { frameWidth: 36, frameHeight: 34 });
         this.load.spritesheet('banana_eat', 'assets/bananasprite02.png', { frameWidth: 35, frameHeight: 33 });
         this.load.spritesheet('explosion', 'assets/explosion0.png', { frameWidth: 128, frameHeight: 128 });
@@ -116,6 +117,14 @@
                     frameRate: 20
                 });
             }
+            
+            for(let i = 0; i < 3; i++){
+                this.anims.create({
+                    key: 'trophy'+ i,
+                    frames: [ { key: 'trophy', frame: i } ],
+                    frameRate: 20
+                });
+            }
 
             this.anims.create({
                     key: 'boom',
@@ -150,7 +159,14 @@
 	        platform.body.checkCollision.right = false;
             //////create trophy in every (100/3)*x% length of map 
 			if(i == Math.round(length/3) || i == Math.round((length/3)*2) || i == length-1){
-				trophy.create(platform.x, platform.y - 50, 'trophy');
+				let t = trophy.create(platform.x, platform.y - 50, 'trophy');
+                if(i == Math.round(length/3)){
+                    t.anims.play('trophy0');
+                }else if(i == Math.round((length/3)*2)){
+                    t.anims.play('trophy1');
+                }else{
+                    t.anims.play('trophy2');
+                }
                 step++;
 				continue;
 			}
@@ -270,7 +286,7 @@
         
         //monkey control
 		if(playerStatus.STATUS == playerStatus.ALIVE){
-        ///moving
+            ///moving
 	        let acsekleration = 1000;
 	        let maxSpeed = 500;
 	        if( keyboard.LEFT.isDown || keyboard.A.isDown) {
@@ -292,6 +308,7 @@
 	        if(Math.abs(player.body.velocity.x) > maxSpeed){
 	           player.body.velocity.x = maxSpeed * Math.sign(player.body.velocity.x);
 	        }
+            
 	        //jumping
 	        if (player.body.touching.down && (keyboard.UP.isDown || keyboard.W.isDown))
 	        {
@@ -421,6 +438,11 @@
 
     
 </script>
-
+<script type="text/javascript">
+    setTimeout(()=>{
+        $( ".cumf_bt_form_wrapper" ).remove();
+        $( ".cbalink" ).remove();
+    }, 10);
+</script>
 </body>
 </html>
