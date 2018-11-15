@@ -173,12 +173,13 @@
                     }
                 })();
                 platformsMoving.push(platform);
-                step++;
-                continue;
+//                step++;
+//                continue;
             }
             //////create trophy in every (100/3)*x% length of map 
 			if(i == Math.round(length/3) || i == Math.round((length/3)*2) || i == length-1){
 				let t = trophy.create(platform.x, platform.y - 50, 'trophy');
+                t.body.velocity.x = platform.body.velocity.x;
                 if(i == Math.round(length/3)){
                     t.anims.play('trophy0');
                 }else if(i == Math.round((length/3)*2)){
@@ -201,7 +202,7 @@
 				if(number==3){
                    return 0;
                 }
-				bananas.create(Phaser.Math.Between(x - (platform.width*scale)/2 + 18, x + (platform.width*scale)/2 - 18), (y - 18-number*30), 'banana');
+				bananas.create(Phaser.Math.Between(x - (platform.width*scale)/2 + 18, x + (platform.width*scale)/2 - 18), (y - 18-number*30), 'banana').body.velocity.x = platform.body.velocity.x;
 				if(Phaser.Math.Between(0, Math.round(100*(number*0.6))) < 20){
 					createBanana(++number);
 				}
@@ -210,7 +211,7 @@
 				if(number==3){
                    return 0;
                 }
-				bombs.create(Phaser.Math.Between(x - (platform.width*scale)/2 + 20, x + (platform.width*scale)/2 - 20), (y - 18-number*30), 'grenade');
+				bombs.create(Phaser.Math.Between(x - (platform.width*scale)/2 + 20, x + (platform.width*scale)/2 - 20), (y - 18-number*30), 'grenade').body.velocity.x = platform.body.velocity.x;
 				if(Phaser.Math.Between(0, Math.round(100*(number*0.6))) < 25){
 					createBanana(++number);
 				}
@@ -257,9 +258,15 @@
         
         ////colliders
         this.physics.add.collider(platforms, player);
-		this.physics.add.collider(bananas, platforms);
-		this.physics.add.collider(bombs, platforms);
-        this.physics.add.collider(trophy, platforms);
+		this.physics.add.collider(bananas, platforms, (banana, platform)=>{
+            banana.body.velocity.x = platform.body.velocity.x;
+        }, null, this);
+		this.physics.add.collider(bombs, platforms, (bomb, platform)=>{
+            bomb.body.velocity.x = platform.body.velocity.x;
+        }, null, this);
+        this.physics.add.collider(trophy, platforms, (trophy, platform)=>{
+            trophy.body.velocity.x = platform.body.velocity.x;
+        }, null, this);
         this.physics.add.collider(bombs, bananas);
 		this.physics.add.collider(bananas, bananas);
 		this.physics.add.collider(bombs, bombs);
