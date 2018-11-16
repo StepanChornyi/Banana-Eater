@@ -39,7 +39,7 @@
     var player;
     var bananas;
 	var bombs;
-	var trophy;
+	var trophys;
     var platforms;
     
     var platformsMoving = [];
@@ -52,22 +52,36 @@
     
     var keyboard;
 	var playerStatus;
+    var collectedTrothys;
     var isRestarted = false;
 
     var game = new Phaser.Game(config);
 
     function preload ()
-    {
-        this.load.image('ground0', 'assets/red01.png');
-        this.load.image('ground1', 'assets/yello01.png');
-        this.load.image('ground2', 'assets/green01.png');
-        this.load.image('ground3', 'assets/blue01.png');
-        this.load.image('grenade', 'assets/grenade4.png');
+    {   
+        ///ground
+        this.load.image('ground0', 'assets/platforms/red01.png');
+        this.load.image('ground1', 'assets/platforms/yello01.png');
+        this.load.image('ground2', 'assets/platforms/green01.png');
+        this.load.image('ground3', 'assets/platforms/blue01.png');
+        
+        //banana
         this.load.image('banana', 'assets/banana.png');
-	    this.load.spritesheet('trophy', 'assets/trophy01.png', { frameWidth: 42, frameHeight: 50 });
-        this.load.spritesheet('monkey', 'assets/sprite1.png', { frameWidth: 36, frameHeight: 34 });
         this.load.spritesheet('banana_eat', 'assets/bananasprite02.png', { frameWidth: 35, frameHeight: 33 });
+        
+        //bomb
+        this.load.image('grenade', 'assets/grenade4.png');
         this.load.spritesheet('explosion', 'assets/explosion0.png', { frameWidth: 128, frameHeight: 128 });
+        
+        //tromhys
+        this.load.image('gold', 'assets/trophys/gold.png');
+        this.load.image('silver', 'assets/trophys/silver.png');
+        this.load.image('bronze', 'assets/trophys/bronze.png');
+        
+        ///player
+        this.load.spritesheet('monkey', 'assets/sprite1.png', { frameWidth: 36, frameHeight: 34 });
+        
+        
     }
     
     function create ()
@@ -121,14 +135,6 @@
                     frameRate: 20
                 });
             }
-            
-            for(let i = 0; i < 3; i++){
-                this.anims.create({
-                    key: 'trophy'+ i,
-                    frames: [ { key: 'trophy', frame: i } ],
-                    frameRate: 20
-                });
-            }
 
             this.anims.create({
                     key: 'boom',
@@ -149,8 +155,10 @@
 		platforms = this.physics.add.group();
 		bananas = this.physics.add.group();
 		bombs = this.physics.add.group();
-		trophy = this.physics.add.group();
+		trophys = this.physics.add.group();
 		platforms.create(300, 568, 'ground' + Phaser.Math.Between(0, 3)).setScale(1.5);
+        
+        
         
 		let step = 0;
 		let length = 54;
@@ -173,20 +181,21 @@
                     }
                 })();
                 platformsMoving.push(platform);
-//                step++;
-//                continue;
             }
             //////create trophy in every (100/3)*x% length of map 
 			if(i == Math.round(length/3) || i == Math.round((length/3)*2) || i == length-1){
-				let t = trophy.create(platform.x, platform.y - 50, 'trophy');
-                t.body.velocity.x = platform.body.velocity.x;
+                let t;
                 if(i == Math.round(length/3)){
-                    t.anims.play('trophy0');
+                    t = trophys.create(platform.x, platform.y - 50, 'bronze');
+                    t.key = 'bronze';
                 }else if(i == Math.round((length/3)*2)){
-                    t.anims.play('trophy1');
+                    t = trophys.create(platform.x, platform.y - 50, 'silver');
+                    t.key = 'silver';
                 }else{
-                    t.anims.play('trophy2');
+                    t = trophys.create(platform.x, platform.y - 50, 'gold');
+                    t.key = 'gold';
                 }
+                t.body.velocity.x = platform.body.velocity.x;
                 step++;
 				continue;
 			}
@@ -218,7 +227,7 @@
 			}
 			step++;
 		}
-        trophy.children.iterate((child)=>{child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.5));
+        trophys.children.iterate((child)=>{child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.5));
                                           child.body.setGravityY(100);});
         bananas.children.iterate((child)=>{child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.5));
                                           child.body.setGravityY(100);});
@@ -229,9 +238,6 @@
         
         
         
-        
-        
-        
         ////player
         player = this.physics.add.sprite(300, 450, 'monkey');
 		player.setBounceX(0.2);
@@ -239,7 +245,8 @@
         player.body.setGravityY(1000);
         player.body.collideWorldBounds = false;
         
-        
+        ///camera
+		this.cameras.main.startFollow(player);
 
         ////Scores
         scoreText = this.add.text(16, 16, 'Height: 0\nFood: 0', { fontSize: '32px', fill: '#eee' });
@@ -252,9 +259,7 @@
                 'If food points are zero - you dead. If you find a trophy - you win',
                 { fontSize: '18px', fill: '#eee' });
             }
-        
-        ///camera
-		this.cameras.main.startFollow(player);
+        collectedTrothys = this.physics.add.group();
         
         ////colliders
         this.physics.add.collider(platforms, player);
@@ -264,7 +269,7 @@
 		this.physics.add.collider(bombs, platforms, (bomb, platform)=>{
             bomb.body.velocity.x = platform.body.velocity.x;
         }, null, this);
-        this.physics.add.collider(trophy, platforms, (trophy, platform)=>{
+        this.physics.add.collider(trophys, platforms, (trophy, platform)=>{
             trophy.body.velocity.x = platform.body.velocity.x;
         }, null, this);
         this.physics.add.collider(bombs, bananas);
@@ -287,7 +292,12 @@
             setTimeout(()=>{boom.destroy();}, 260);
             collectBomb(player, bomb);
         }, null, this);
-		this.physics.add.overlap(player, trophy, collectTrophy, null, this);
+		this.physics.add.overlap(player, trophys, (player, trophy)=>{
+            let c = collectedTrothys.create(0, 0, trophy.key);
+            c.setScale(1);
+            c.key = trophy.key;
+            collectTrophy(player, trophy);
+        }, null, this);
     }
     
     function update ()
@@ -420,6 +430,7 @@
             scoreText.setText('You Win!\n\n');
         }
         else if(playerStatus.STATUS == playerStatus.STARVATION){
+            
             scoreText.setText('Food is over!\n\n');
         }
         else if(playerStatus.STATUS == playerStatus.RESTARTING){
@@ -427,6 +438,86 @@
             scoreText.y = player.y - player.width*5;
             player.setVelocityY(50);
         }
+        let bronze, silver, gold;
+        collectedTrothys.children.iterate((child)=>{
+                if(child.key === 'bronze'){
+                    bronze = child;
+                }else if(child.key === 'silver'){
+                    silver = child;
+                }else{
+                    gold = child;
+                }
+                
+        });
+        if(playerStatus.STATUS == playerStatus.ALIVE){
+            let x = 0;
+            if(bronze){
+                bronze.y = player.y  - HEIGHT/2  + 140;
+                bronze.x = player.x - WIDTH/2 + 50 + 52*x;
+                x++;
+            }
+            if(silver){
+                silver.y = player.y  - HEIGHT/2  + 140;
+                silver.x = player.x - WIDTH/2 + 50 + 52*x;
+                x++;
+            }
+            if(gold){
+                gold.y = player.y  - HEIGHT/2  + 140;
+                gold.x = player.x - WIDTH/2 + 50 + 52*x;
+            }
+               
+        }
+        else if(playerStatus.STATUS == playerStatus.RESTARTING){
+            let y = player.y  - player.width*3;
+            let count = 0;
+            if (bronze){
+                count++;
+            }
+            if(silver){
+               count++;
+            }
+            if (gold){
+               count++;
+            }
+            
+            if (bronze){
+                bronze.y = y;
+                bronze.setScale(1.1);
+                if(count == 1){
+                   bronze.x = player.x;
+                }else if(count == 2){
+                    bronze.x = player.x - bronze.width/2 - 8;
+                }else{
+                    bronze.x = player.x - bronze.width - 16;
+                }
+            }
+            if(silver){
+                silver.y = y;
+                silver.setScale(1.1);
+                if(count == 1){
+                   silver.x = player.x;
+                }else if(count == 2 && bronze){
+                    silver.x = player.x + silver.width/2 + 8;
+                }else if(count == 2){
+                    silver.x = player.x - silver.width/2 - 8;
+                }else{
+                    silver.x = player.x;
+                }
+            }
+            if (gold){
+                gold.y = y;
+                gold.setScale(1.1);
+                if(count == 1){
+                   gold.x = player.x;
+                }else if(count == 2){
+                    gold.x = player.x + gold.width/2 + 8;
+                }else{
+                    gold.x = player.x + gold.width + 16;
+                }
+            }
+        }
+        
+        
         
 
 		
@@ -453,7 +544,7 @@
 				bomb.setVelocityY(450);
 				bomb.body.setGravityY(0);
 	        });
-            trophy.children.iterate(function (bomb) {
+            trophys.children.iterate(function (bomb) {
 				bomb.setVelocityY(200);
 				bomb.body.setGravityY(0);
 	        });
@@ -479,10 +570,10 @@
     }
 
 	function collectTrophy (player, trophy){
-        trophy.disableBody(true, true);
-        if(playerStatus.STATUS == playerStatus.ALIVE){
+        if(playerStatus.STATUS == playerStatus.ALIVE && trophy.key === 'gold'){
            score = -1000;
         }
+        trophy.disableBody(true, true);
     }
 
     
