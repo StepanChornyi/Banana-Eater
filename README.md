@@ -1,1 +1,1 @@
-Enjoy my game at: http://stepanchornyi.zzz.com.ua/game/Banana%20Eater.html
+Play this game at: https://blackstan.000webhostapp.com/banana_eater/
