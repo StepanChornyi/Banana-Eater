@@ -1,3 +1,3 @@
 One of my first games. Powered by Phaser 3
 
-Play at: https://asassasas.000webhostapp.com/banana-eater/Banana%20Eater.html
+Play it [here](https://stepan-chornyi.000webhostapp.com/banana_eater/)
